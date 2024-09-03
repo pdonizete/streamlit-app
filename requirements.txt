@@ -1,3 +1,4 @@
 streamlit
-matplotlib
-numpy
+crewai
+langchain_groq
+pysqlite3-binary
