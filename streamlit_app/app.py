@@ -1,20 +1,62 @@
 import streamlit as st
+from crewai import Agent, Task, Crew
+from langchain_groq import ChatGroq
+
+# Configuração do Llama
+grog_api_key = st.secrets.get("GROQ_API_KEY")
+if not grog_api_key:
+    st.error("A chave de API do GROQ não foi fornecida. Verifique o arquivo .env.")
+    st.stop()
+
+llama_3 = ChatGroq(
+    api_key=grog_api_key,
+    model="llama3-70b-8192",  # "llama-3.1-70b-versatile"
+    timeout=180,
+)
 
 # Título da aplicação
-st.title("Minha Primeira Aplicação no Streamlit")
+st.title("Aplicação CrewAI com Streamlit")
 
-# Texto descritivo
-st.write("Bem-vindo à minha primeira aplicação usando Streamlit!")
+# Entrada do usuário
+user_input = st.text_input("Pergunta:", "Digite sua pergunta")
 
-# Inserindo um número
-numero = st.number_input("Escolha um número", min_value=0, max_value=100, value=50)
+# Botão de envio
+if st.button("Enviar"):
+    # Configuração do agente
+    agent = Agent(
+        role="Assistente",
+        goal="Responder perguntas de forma sucinta em até 140 caracteres",
+        backstory=(
+            "Você é um assistente rápido e direto ao ponto, conhecido por fornecer "
+            "respostas claras e concisas que nunca ultrapassam 140 caracteres."
+        ),
+        llm=llama_3,
+        verbose=True,
+        memory=True,
+    )
 
-# Mostrando o resultado
-st.write(f"O número escolhido foi: {numero}")
+    # Configuração da task
+    task = Task(
+        description=(
+            "Responder à pergunta: '{pergunta}'. "
+            "A resposta deve ser clara, concisa e não ultrapassar 140 caracteres. "
+            "Evite repetições e mantenha a resposta objetiva."
+        ),
+        expected_output=(
+            "Uma resposta clara, direta e com no máximo 140 caracteres para a pergunta: '{pergunta}'."
+        ),
+        agent=agent,
+    )
 
-# Gráfico simples
-import matplotlib.pyplot as plt
+    # Configuração da crew
+    crew = Crew(
+        agents=[agent],
+        tasks=[task],
+        verbose=True,
+    )
 
-valores = [1, 2, 3, 4, 5]
-plt.plot(valores, [v * numero for v in valores])
-st.pyplot(plt)
+    # Executa a crew
+    result = dict(crew.kickoff(inputs={"pergunta": user_input}))
+
+    # Exibe o resultado
+    st.write("Resposta do agente:", result["raw"])

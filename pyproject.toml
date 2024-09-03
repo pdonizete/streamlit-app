@@ -6,9 +6,12 @@ authors = ["DG Costa <costadiegus@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<=3.13"
 streamlit = "^1.38.0"
 matplotlib = "^3.9.2"
+crewai = "^0.51.1"
+langchain-groq = "^0.1.9"
+pydantic = "^2.8.2"
 
 
 [build-system]
